@@ -43,15 +43,13 @@ void parse(){
   b[m] = INT_MAX;
 
   for(int j = 0; j <= m; j++) br[j] = b[j];
-
-  for(int i = 0; i < m; i++) printf("%d ", b[i]);
 }
 
 
 int main(){
 
-  parse2();
-  
+  parse();
+
   for(int i = 0; i < n; i++){
     int mina = 100000;
     int minIndex = m;
