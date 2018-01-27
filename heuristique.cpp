@@ -4,6 +4,7 @@
 #include <vector>
 #include <cstring>
 #include <iostream>
+#include <fstream>
 #include <iomanip>
 #include <math.h>
 #include <map>
@@ -13,7 +14,7 @@
 
 using namespace std;
 
-int c[81][1600], a[81][1600], b[81], n, m, br[81], machine[1600], cost = 0;
+int c[81][1600], a[81][1600], b[81], n, m, br[81], machine[1600];
 
 bool isnumber(char ch){
   return ( (ch-'0' >= 0 && ch-'0' <= 9) || ch == ' ' );
@@ -45,11 +46,8 @@ void parse(){
   for(int j = 0; j <= m; j++) br[j] = b[j];
 }
 
-
-int main(){
-
-  parse();
-
+int heuristique(){
+  int cost = 0;
   for(int i = 0; i < n; i++){
     int mina = 100000;
     int minIndex = m;
@@ -63,8 +61,21 @@ int main(){
     br[minIndex] -= mina;
     cost += c[minIndex][i];
   }
+  return cost;
+}
 
-  cout << cost << endl;
+int main(){
+
+  string s;
+  ifstream instances;
+  instances.open("Liste_instances.txt");
+  while(!instances.eof()){
+    instances >> s;
+    stdin = fopen(s.c_str(), "r");
+    parse();
+    cout << s << " " << heuristique() << endl;
+  }
+  instances.close();
 
   return 0;
 }
