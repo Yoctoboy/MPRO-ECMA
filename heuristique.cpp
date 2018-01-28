@@ -19,6 +19,7 @@ using namespace std::chrono;
 #define D false
 
 int c[81][1600], a[81][1600], b[81], n, m, br[81], machine[1600];
+int millisec = 1000;
 
 bool isnumber(char ch){
   return ( (ch-'0' >= 0 && ch-'0' <= 9) || ch == ' ' );
@@ -76,7 +77,7 @@ int heuristique(){
   int cur_client, cur_machine, best_machine;
   auto start = steady_clock::now();
   int iter = 0;
-  while(duration_cast<chrono::milliseconds>(steady_clock::now() - start).count() < 1000){
+  while(duration_cast<chrono::milliseconds>(steady_clock::now() - start).count() < millisec){
     cur_client = rand()%n;
     cur_machine = machine[cur_client];
     best_machine = machine[cur_client];
@@ -98,6 +99,7 @@ int main(){
 
   srand(time(NULL));
 
+  printf("Execution de l'algorithme en %d ms par instance\n", millisec);
   string s;
   ifstream instances;
   instances.open("Liste_instances.txt");
