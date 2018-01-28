@@ -14,7 +14,7 @@
 #include <chrono>
 
 using namespace std;
-using namespace chrono;
+using namespace std::chrono;
 
 #define D false
 
@@ -25,10 +25,11 @@ bool isnumber(char ch){
 }
 
 void parse(string s){
-  stdin = fopen(s.c_str(), "r");
+  ifstream f;
+  f.open(s.c_str());
   stringstream ss;
   char ch;
-  while(scanf("%c", &ch) != EOF){
+  while(f.get(ch)){
     if(isnumber(ch)) ss << ch;
     else ss << ' ';
   }
@@ -75,7 +76,7 @@ int heuristique(){
   int cur_client, cur_machine, best_machine;
   auto start = steady_clock::now();
   int iter = 0;
-  while(duration_cast<chrono::milliseconds>(steady_clock::now() - start).count() < 3000){
+  while(duration_cast<chrono::milliseconds>(steady_clock::now() - start).count() < 1000){
     cur_client = rand()%n;
     cur_machine = machine[cur_client];
     best_machine = machine[cur_client];
