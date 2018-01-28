@@ -41,10 +41,12 @@ void parse(string s){
   //parse c
   for(int j = 0; j < m; j++)
     for(int i = 0; i < n; i++) ss >> c[j][i];
+  for (int i = 0; i < n; i++) c[m][i] = 100000;
 
   //parse a
   for(int j = 0; j < m; j++)
     for(int i = 0; i < n; i++) ss >> a[j][i];
+  for (int i = 0; i < n; i++) a[m][i] = 1;
 
   //parse b
   for(int j = 0; j < m; j++) ss >> b[j];
@@ -58,6 +60,7 @@ int heuristique(){
   int cost = 0;
 
   //init
+  int nbVirtualMachine = 0;
   for(int i = 0; i < n; i++){
     int mina = 100000;
     int minIndex = m;
@@ -68,6 +71,10 @@ int heuristique(){
       }
     }
     machine[i] = minIndex;
+	if (minIndex == m) {
+		mina = 1;
+		nbVirtualMachine++;
+	}
     br[minIndex] -= mina;
     cost += c[minIndex][i];
   }
@@ -76,8 +83,7 @@ int heuristique(){
   //algo
   int cur_client, cur_machine, best_machine;
   auto start = steady_clock::now();
-  int iter = 0;
-  while(duration_cast<chrono::milliseconds>(steady_clock::now() - start).count() < millisec){
+  while(duration_cast<chrono::milliseconds>(steady_clock::now() - start).count() < millisec || nbVirtualMachine > 0){
     cur_client = rand()%n;
     cur_machine = machine[cur_client];
     best_machine = machine[cur_client];
@@ -90,6 +96,8 @@ int heuristique(){
     cost -= c[cur_machine][cur_client];
     cost += c[best_machine][cur_client];
     br[best_machine] -= a[best_machine][cur_client];
+
+	if (cur_machine == m && best_machine != m) nbVirtualMachine--;
   }
 
   return cost;
