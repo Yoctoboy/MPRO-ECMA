@@ -69,11 +69,10 @@ int main(){
   string s;
   ifstream instances;
   instances.open("Liste_instances.txt");
-  while(!instances.eof()){
-    instances >> s;
+  while(instances >> s){
     stdin = fopen(s.c_str(), "r");
     parse();
-    cout << s << " " << heuristique() << endl;
+    printf("%s : %d\n", s.c_str(), heuristique());
   }
   instances.close();
 
