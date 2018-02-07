@@ -231,38 +231,38 @@ int main(){
     parse(s);
 	printf("%s : %d\n", s.c_str(), heuristique());
 
-	/*cout << "int a[100][5] = {";
-	for (int j = 0; j < 5; j++) {
+	/*cout << "int a[" << m << "][" << n << "] = {";
+	for (int j = 0; j < m; j++) {
 		cout << "{";
-		for (int i = 0; i < 99; i++) cout << a[i][j] << ", ";
-		cout << a[99][j] << "}";
-		if (j < 4) cout << ", ";
+		for (int i = 0; i < n-1; i++) cout << a[i][j] << ", ";
+		cout << a[n-1][j] << "}";
+		if (j < m-1) cout << ", ";
 	}
 	cout << "};\n";
 
-	cout << "int c[100][5] = {";
-	for (int j = 0; j < 5; j++) {
+	cout << "int c[" << m << "][" << n << "] = {";
+	for (int j = 0; j < m; j++) {
 		cout << "{";
-		for (int i = 0; i < 99; i++) cout << c[i][j] << ", ";
-		cout << c[99][j] << "}";
-		if (j < 4) cout << ", ";
+		for (int i = 0; i < n-1; i++) cout << c[i][j] << ", ";
+		cout << c[n-1][j] << "}";
+		if (j < m-1) cout << ", ";
 	}
 	cout << "};\n";
 
-	cout << "int b[5] = {";
-	for (int j = 0; j < 4; j++) cout << b[j] << ", ";
-	cout << b[4] << "};\n";
+	cout << "int b[" << m << "] = {";
+	for (int j = 0; j < m-1; j++) cout << b[j] << ", ";
+	cout << b[m-1] << "};\n";
 
-	cout << "int s_init[5][100] = {";
-	for (int j = 0; j < 5; j++) {
+	cout << "int s_init[" << m << "][" << n << "] = {";
+	for (int j = 0; j < m; j++) {
 		cout << "{";
-		for (int i = 0; i < 100; i++) {
+		for (int i = 0; i < n; i++) {
 			if (machine[i] == j) cout << "1";
 			else cout << "0";
-			if (i < 99) cout << ", ";
+			if (i < n-1) cout << ", ";
 		}
 		cout << "}";
-		if (j < 4) cout << ", ";
+		if (j < m-1) cout << ", ";
 	}
 	cout << "};\n";*/
 
