@@ -1,6 +1,16 @@
 #include <ilcplex/ilocplex.h>
-#include <algorithm>
+#include <iostream>
+#include <stdio.h>
 #include <vector>
+#include <cstring>
+#include <iostream>
+#include <iomanip>
+#include <map>
+#include <deque>
+#include <queue>
+#include <climits>
+#include <algorithm>
+#include <math.h>
 
 using namespace std;
 
@@ -17,6 +27,18 @@ void moveTask(int task, int newMachine) {
 	br[newMachine] -= a[newMachine][task];
 	cost += c[newMachine][task] - c[curMachine][task];
 	machine[task] = newMachine;
+}
+
+void printcursol(){
+	for(int j = 0; j < mm; j++) memset(s_init[j], 0, sizeof(s_init[j]));
+	for(int i = 0; i < nn; i++) s_init[machine[i]][i] = 1;
+	for(int j = 0; j < mm; j++){
+		for(int i = 0; i < nn; i++){
+			cout << s_init[j][i];
+		}
+		cout << endl;
+	}
+	cout << cost << endl;
 }
 
 void heuristique() {
@@ -103,16 +125,8 @@ void heuristique() {
         }
         T *= 0.9; // arbitrary
     }
-	
-	for(int j = 0; j < mm; j++) memset(s_init[j], 0, sizeof(s_init[j]));
-	for(int i = 0; i < nn; i++) s_init[machine[i]][i] = 1;
-	for(int j = 0; j < mm; j++){
-		for(int i = 0; i < nn; i++){
-			cout << s_init[j][i];
-		}
-		cout << endl;
-	}
-	cout << cost << endl;
+
+	printcursol();
 }
 
 void parse(string s){
@@ -168,7 +182,7 @@ int main() {
 	// contrainte 2 : chaque machine execute exactement 1 affectation de taches
 	IloRangeArray contMachines = IloAdd(PMR, IloRangeArray(env, m, 1, 1));
 
-	// colonnes qui entrent dans le PMR au départ
+	// colonnes qui entrent dans le PMR au dï¿½part
 	for (int j = 0; j < m; j++) {
 		IloInt coefObj = 0;
 		IloNumArray coefContT(env, n);
@@ -188,7 +202,7 @@ int main() {
 	PMRSolver.setOut(env.getNullStream());
 
 
-	// Procedure de generation de colonnes : 
+	// Procedure de generation de colonnes :
 	// lambda variables duales associees aux contraintes sur les taches
 	IloNumArray lambda(env, n);
 	// mu variables duales associees aux contraintes sur les machines
@@ -203,6 +217,7 @@ int main() {
 	while (!isOver) {
 
 		PMRSolver.solve();
+		printf("current value : %lf\n", PMRSolver.getObjValue());
 
 		// on recupere les variables duales
 		for (int i = 0; i < n; i++) lambda[i] = PMRSolver.getDual(contTasks[i]);
@@ -267,6 +282,6 @@ int main() {
 
 
 
-	system("PAUSE");
+	//system("PAUSE");
 	return 0;
 }
