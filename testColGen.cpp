@@ -271,6 +271,13 @@ int main() {
 			}
 
 			x.add(IloNumVar(obj(coefObj) + contTasks(coefContT) + contMachines[j](1)));
+
+			// libération de la mémoire
+			coutReduit.end();
+			z.end();
+			aj.end();
+			PA.end();
+			PASolver.end();
 		}
 
 		isOver = allPositive;
