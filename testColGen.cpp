@@ -11,6 +11,7 @@
 #include <climits>
 #include <algorithm>
 #include <math.h>
+#include <ctime>
 
 using namespace std;
 
@@ -19,6 +20,7 @@ using namespace std;
 const float RC_EPS = 0.0001;
 
 int cost, nn, mm, a[81][1600], b[81], c[81][1600], br[81], s_init[81][1600], machine[1600];
+double time_instance;
 
 // move task from machine[task] to newMachine
 void moveTask(int task, int newMachine) {
@@ -29,9 +31,8 @@ void moveTask(int task, int newMachine) {
 	machine[task] = newMachine;
 }
 
+// afficher la solution courante
 void printcursol(){
-	for(int j = 0; j < mm; j++) memset(s_init[j], 0, sizeof(s_init[j]));
-	for(int i = 0; i < nn; i++) s_init[machine[i]][i] = 1;
 	for(int j = 0; j < mm; j++){
 		for(int i = 0; i < nn; i++){
 			cout << s_init[j][i];
@@ -41,8 +42,11 @@ void printcursol(){
 	cout << cost << endl;
 }
 
-void heuristique() {
-
+//heuristique pour obtenir une solution initiale
+int heuristique() {
+	printf("Heuristique... ");
+	cout << flush;
+	clock_t start = clock();
 	cost = 0;
 
 	// sorting the tasks: a task is to be dealt with early if it has a great potential resource cost
@@ -80,9 +84,9 @@ void heuristique() {
 	}
 
 	// algo: simulated annealing
-    int curTask, curMachine, bestMachine, bestTask, costDiff, bestDiff, iter = 0;
+    int curTask, curMachine, bestMachine, bestTask, costDiff, bestDiff;
     double T = 1.;
-    while (iter++ < 400000) {
+    while ((clock()-start)/(double)CLOCKS_PER_SEC < time_instance) {
         for (int r = 0; r < mm; r++) {			// (r < m) arbitrary
             curTask = rand() % nn;
             curMachine = machine[curTask];
@@ -125,11 +129,24 @@ void heuristique() {
         }
         T *= 0.9; // arbitrary
     }
-
-	printcursol();
+		printf("Terminée\n");
+		cout << flush;
+		return cost;
 }
 
+//parser les instances
 void parse(string s){
+	//reinitialiser la memoire
+	for(int i = 0; i < 81; i++){
+		memset(a[i], 0, sizeof(a[i]));
+		memset(c[i], 0, sizeof(c[i]));
+		memset(s_init[i], 0, sizeof(s_init[i]));
+	}
+	memset(machine, 0, sizeof(machine));
+	memset(br, 0, sizeof(br));
+	memset(b, 0, sizeof(b));
+
+	//obtenir tous les caractères de l'instance
 	ifstream f;
 	f.open(s.c_str());
 	stringstream ss;
@@ -159,12 +176,37 @@ void parse(string s){
 	for(int j = 0; j <= mm; j++) br[j] = b[j];
 }
 
-int main() {
+void printdata(){
+	cout << endl;
 
+	//parse c
+	for(int j = 0; j < mm; j++){
+		for(int i = 0; i < nn; i++) cout << c[j][i] << " ";
+		cout << endl;
+	}
+	cout << endl;
+	//parse a
+	for(int j = 0; j < mm; j++){
+		for(int i = 0; i < nn; i++) cout << a[j][i] << " ";
+		cout << endl;
+	}
+	cout << endl;
+	//parse b
+	for(int j = 0; j < mm; j++) cout << b[j] << " ";
+	cout << endl << endl;
+	cout << nn << " " << mm << endl;
+	cout << endl << endl;
+}
+
+//génération de colonnes
+void colGen(string instance){
 	IloEnv env;
 
-	parse("GAP/GAP-a05100.dat");
-	heuristique();
+	parse(instance);
+	int current_value = heuristique();
+	cout << "Instance " << instance << " (Initial value = " << cost << ")" << endl;
+	cout << flush;
+
 	IloInt n = nn;
 	IloInt m = mm;
 
@@ -182,19 +224,21 @@ int main() {
 	// contrainte 2 : chaque machine execute exactement 1 affectation de taches
 	IloRangeArray contMachines = IloAdd(PMR, IloRangeArray(env, m, 1, 1));
 
+	for(int j = 0; j < mm; j++) memset(s_init[j], 0, sizeof(s_init[j]));
+	for(int i = 0; i < nn; i++) s_init[machine[i]][i] = 1;
+
 	// colonnes qui entrent dans le PMR au d�part
 	for (int j = 0; j < m; j++) {
 		IloInt coefObj = 0;
 		IloNumArray coefContT(env, n);
 
-		for (int i = 0; i < 100; i++) {
+		for (int i = 0; i < n; i++) {
 			coefObj += c[j][i] * s_init[j][i];
 			coefContT[i] += s_init[j][i];
 		}
 
 		x.add(IloNumVar(obj(coefObj) + contTasks(coefContT) + contMachines[j](1)));
 	}
-
 	IloCplex PMRSolver(PMR);
 
 
@@ -213,18 +257,29 @@ int main() {
 	bool isOver = false;
 	int id = m;
 
+	clock_t start = clock();
 	// Tant que le sous-probleme fournit une solution de valeur negative
-	while (!isOver) {
+	while (!isOver && (clock()-start)/(double)CLOCKS_PER_SEC < time_instance) {
 
 		PMRSolver.solve();
-		printf("current value : %lf\n", PMRSolver.getObjValue());
+
+		if((int)PMRSolver.getObjValue() < current_value){
+			current_value = (int)PMRSolver.getObjValue();
+			printf("Amélioration à l'iteration %d : %d\n", id/m, current_value);
+			cout << flush;
+		}
 
 		// on recupere les variables duales
 		for (int i = 0; i < n; i++) lambda[i] = PMRSolver.getDual(contTasks[i]);
 		for (int j = 0; j < m; j++) mu[j] = PMRSolver.getDual(contMachines[j]);
 
-
 		bool allPositive = true;
+
+			IloModel PA;
+			IloObjective coutReduit;
+			IloBoolVarArray z;
+			IloNumArray aj, coefContT;
+			IloCplex PASolver;
 
 		// Problemes auxiliaires : generation d'affectations
 		for (int j = 0; j < m; j++) {
@@ -250,7 +305,6 @@ int main() {
 			allPositive = allPositive && (PASolver.getValue(coutReduit) > -RC_EPS);
 
 			PASolver.getValues(affectation, z);
-			cout << "affectation de la machine " << j << " numero " << int(id / m) << endl;// << " : " << affectation << endl;
 
 			/*if (id == m) {
 				PASolver.exportModel("pamodel.lp");
@@ -265,7 +319,7 @@ int main() {
 			IloNum coefObj = 0;
 			IloNumArray coefContT(env, n);
 
-			for (int i = 0; i < 100; i++) {
+			for (int i = 0; i < n; i++) {
 				coefObj += c[j][i] * affectation[i];
 				coefContT[i] += affectation[i];
 			}
@@ -279,16 +333,49 @@ int main() {
 			PA.end();
 			PASolver.end();
 		}
-
 		isOver = allPositive;
 
 	}
-
 	PMRSolver.solve();
-	cout << "solution apres generation de colonnes : " << PMRSolver.getObjValue() << endl;
+	cout << "Solution apres generation de colonnes : " << current_value << endl << endl;
+	cout << flush;
+}
 
+int main() {
 
+	//seed aleatoire pour la generation de nombres aleatoires
+	srand(time(NULL));
 
-	//system("PAUSE");
+	//temps passe sur chaque instance
+	printf("Combien de temps (en s) pour chaque instance ?  ");
+	scanf("%lf", &time_instance);
+  printf("Execution de l'algorithme en %ds par instance\n\n", (int)time_instance);
+	time_instance/=2;
+
+	//algo
+  string s;
+  ifstream instances;
+  instances.open("Liste_instances.txt");
+  while(instances >> s){
+			colGen(s);
+	}
+
 	return 0;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//
