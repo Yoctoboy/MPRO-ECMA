@@ -100,7 +100,7 @@ int heuristique() {
 		}
 		T *= 0.9; // arbitrary
 	}
-	printf("Terminée\n");
+	printf("Terminee\n");
 	cout << flush;
 	return cost;
 }

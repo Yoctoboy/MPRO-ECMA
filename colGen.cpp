@@ -98,7 +98,7 @@ void colGen(string instance) {
 
 		if ((int)PMRSolver.getObjValue() < current_value) {
 			current_value = (int)PMRSolver.getObjValue();
-			printf("Amélioration à l'iteration %d : %d\n", id / m, current_value);
+			printf("Amelioration a l'iteration %d : %d\n", id / m, current_value);
 			cout << flush;
 		}
 
