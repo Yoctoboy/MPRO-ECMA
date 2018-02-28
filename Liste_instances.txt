@@ -1,4 +1,3 @@
-GAP/GAP-test.dat
 GAP/GAP-a05100.dat
 GAP/GAP-a05200.dat
 GAP/GAP-a10100.dat

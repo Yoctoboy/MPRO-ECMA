@@ -15,6 +15,8 @@
 #include <chrono>
 
 
+extern int n, m, cost, a[1600][81], b[81], br[81], c[1600][81], machine[1600];
+
 bool isnumber(char ch);
 
 void parse(std::string s);
