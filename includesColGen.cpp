@@ -57,7 +57,7 @@ int heuristique() {
 	// algo: simulated annealing
 	int curTask, curMachine, bestMachine, bestTask, costDiff, bestDiff;
 	double T = 1.;
-	while ((clock() - start) / (double)CLOCKS_PER_SEC < time_instance) {
+	while ((clock() - start) / (double)CLOCKS_PER_SEC < 0.25*time_instance) {
 		for (int r = 0; r < mm; r++) {			// (r < m) arbitrary
 			curTask = rand() % nn;
 			curMachine = machine[curTask];
@@ -153,7 +153,7 @@ void parse(string s) {
 	memset(br, 0, sizeof(br));
 	memset(b, 0, sizeof(b));
 
-	//obtenir tous les caractères de l'instance
+	//obtenir tous les caractï¿½res de l'instance
 	ifstream f;
 	f.open(s.c_str());
 	stringstream ss;

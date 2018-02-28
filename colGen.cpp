@@ -21,7 +21,6 @@ int main() {
 	printf("Combien de temps (en s) pour chaque instance ?  ");
 	scanf("%lf", &time_instance);
 	printf("Execution de l'algorithme en %ds par instance\n\n", (int)time_instance);
-	time_instance /= 2;
 
 	//algo
 	string s;
@@ -92,7 +91,7 @@ void colGen(string instance) {
 
 	clock_t start = clock();
 	// Tant que le sous-probleme fournit une solution de valeur negative
-	while (!isOver && (clock() - start) / (double)CLOCKS_PER_SEC < time_instance) {
+	while (!isOver && (clock() - start) / (double)CLOCKS_PER_SEC < 0.75*time_instance) {
 
 		PMRSolver.solve();
 
@@ -166,5 +165,3 @@ void colGen(string instance) {
 	cout << "Solution apres generation de colonnes : " << current_value << endl << endl;
 	cout << flush;
 }
-
-
