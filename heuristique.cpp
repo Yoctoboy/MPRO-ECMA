@@ -1,18 +1,4 @@
-#include <iostream>
-#include <stdio.h>
-#include <algorithm>
-#include <vector>
-#include <list>
-#include <cstring>
-#include <iostream>
-#include <fstream>
-#include <iomanip>
-#include <math.h>
-#include <map>
-#include <deque>
-#include <queue>
-#include <climits>
-#include <chrono>
+#include "includesHeuristique.h"
 
 using namespace std;
 using namespace std::chrono;
@@ -22,50 +8,26 @@ using namespace std::chrono;
 int n, m, cost, a[1600][81], b[81], br[81], c[1600][81], machine[1600];
 int millisec = 1000;
 
-bool isnumber(char ch){
-  return ( (ch-'0' >= 0 && ch-'0' <= 9) || ch == ' ' );
+void moveTask(int task, int newMachine);
+int heuristique();
+
+
+int main() {
+
+	srand(time(NULL));
+
+	printf("Execution de l'algorithme en %d ms par instance\n", millisec);
+	string s;
+	ifstream instances;
+	instances.open("Liste_instances.txt");
+	while (instances >> s) {
+		parse(s);
+		printf("%s : %d\n", s.c_str(), heuristique());
+	}
+	instances.close();
+
+	return 0;
 }
-
-void parse(string s){
-  ifstream f;
-  f.open(s.c_str());
-  stringstream ss;
-  char ch;
-  while(f.get(ch)){
-    if(isnumber(ch)) ss << ch;
-    else ss << ' ';
-  }
-
-  //parse n & m
-  ss >> n >> m;
-
-  //parse c
-  for(int j = 0; j < m; j++)
-    for(int i = 0; i < n; i++) ss >> c[i][j];
-  for (int i = 0; i < n; i++) c[i][m] = 100000;
-
-  //parse a
-  for(int j = 0; j < m; j++)
-    for(int i = 0; i < n; i++) ss >> a[i][j];
-  for (int i = 0; i < n; i++) a[i][m] = 1;
-
-  //parse b
-  for(int j = 0; j < m; j++) ss >> b[j];
-  b[m] = INT_MAX;
-
-  for(int j = 0; j <= m; j++) br[j] = b[j];
-}
-
-
-// move task from machine[task] to newMachine
-void moveTask(int task, int newMachine) {
-	int curMachine = machine[task];
-	br[curMachine] += a[task][curMachine];
-	br[newMachine] -= a[task][newMachine];
-	cost += c[task][newMachine] - c[task][curMachine];
-	machine[task] = newMachine;
-}
-
 
 
 int heuristique() {
@@ -219,83 +181,11 @@ int heuristique() {
 }
 
 
-int main(){
-
-  srand(time(NULL));
-
-  printf("Execution de l'algorithme en %d ms par instance\n", millisec);
-  string s;
-  ifstream instances;
-  instances.open("Liste_instances.txt");
-  while(instances >> s){
-    parse(s);
-	printf("%s : %d\n", s.c_str(), heuristique());
-
-	/*cout << "int a[" << m << "][" << n << "] = {";
-	for (int j = 0; j < m; j++) {
-		cout << "{";
-		for (int i = 0; i < n-1; i++) cout << a[i][j] << ", ";
-		cout << a[n-1][j] << "}";
-		if (j < m-1) cout << ", ";
-	}
-	cout << "};\n";
-
-	cout << "int c[" << m << "][" << n << "] = {";
-	for (int j = 0; j < m; j++) {
-		cout << "{";
-		for (int i = 0; i < n-1; i++) cout << c[i][j] << ", ";
-		cout << c[n-1][j] << "}";
-		if (j < m-1) cout << ", ";
-	}
-	cout << "};\n";
-
-	cout << "int b[" << m << "] = {";
-	for (int j = 0; j < m-1; j++) cout << b[j] << ", ";
-	cout << b[m-1] << "};\n";
-
-	cout << "int s_init[" << m << "][" << n << "] = {";
-	for (int j = 0; j < m; j++) {
-		cout << "{";
-		for (int i = 0; i < n; i++) {
-			if (machine[i] == j) cout << "1";
-			else cout << "0";
-			if (i < n-1) cout << ", ";
-		}
-		cout << "}";
-		if (j < m-1) cout << ", ";
-	}
-	cout << "};\n";*/
-
-
-  }
-  instances.close();
-
-  return 0;
+// move task from machine[task] to newMachine
+void moveTask(int task, int newMachine) {
+	int curMachine = machine[task];
+	br[curMachine] += a[task][curMachine];
+	br[newMachine] -= a[task][newMachine];
+	cost += c[task][newMachine] - c[task][curMachine];
+	machine[task] = newMachine;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-//
