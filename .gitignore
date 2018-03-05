@@ -6,5 +6,6 @@
 *.suo
 *.vcxproj
 *.vcxproj.user
+*.lp
 /ipch
 /Debug
