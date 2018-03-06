@@ -41,6 +41,15 @@ CCLNFLAGS = -lconcert -lilocplex -lcplex -lm -pthread
 
 all: colGen
 
+branchCut: branchCut.o includesBranchCut.o
+	g++ $(CCFLAGS) $(CCLNDIRS) -o branchCut branchCut.o includesBranchCut.o $(CCLNFLAGS)
+
+branchCut.o: branchCut.cpp
+	g++ -c $(CCFLAGS) branchCut.cpp -o branchCut.o
+
+includesBranchCut.o: includesBranchCut.cpp
+	g++ -c $(CCFLAGS) includesBranchCut.cpp -o includesBranchCut.o
+
 colGen: colGen.o includesColGen.o
 	g++ $(CCFLAGS) $(CCLNDIRS) -o colGen colGen.o includesColGen.o $(CCLNFLAGS)
 
