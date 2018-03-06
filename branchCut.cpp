@@ -11,7 +11,7 @@ int mostFracVar(IloNumArray & values);
 
 
 int main() {
-	branchCut("GAP/GAP-a05100.dat");
+	branchCut("GAP/GAP-b05100.dat");
 
 	system("PAUSE");
 	return 0;
@@ -26,7 +26,6 @@ void branchCut(string instance) {
 	IloInt m = mm;
 
 	// Programme lineaire compact
-	//IloModel master(env);
 	IloNumVarArray x(env, m * n, 0, 1);
 
 	// Objectif
@@ -93,12 +92,16 @@ void branchCut(string instance) {
 		IloCplex masterSolver(master);
 		masterSolver.setOut(env.getNullStream());
 		//masterSolver.exportModel("masterModel.lp");
-		masterSolver.solve();
+		if (!masterSolver.solve()) {
+			cout << "iteration " << ++iter << " : pas de solution realisable, abandon du noeud" << endl;
+			system("PAUSE");
+			continue;
+		}
 		curObj = masterSolver.getObjValue();
 		masterSolver.getValues(values, x);
 		int k = mostFracVar(values);
 
-		cout << "iteration " << ++iter << " : valeur " << curObj << ", ";
+		cout << "iteration " << ++iter << " (" << allocationsQueue.size() << " noeuds restants) : valeur " << curObj << ", ";
 		
 		// variables entieres
 		if (k < 0) {
@@ -123,6 +126,8 @@ void branchCut(string instance) {
 				allocationsQueue.push(allocation);
 				cout << "on branche sur x[j=" << k%m << "][i=" << k/m << "]" << endl;
 
+
+				//cuts.add(x[rand()%m*n] >= RC_EPS);
 
 				// ajout d'une nouvelle coupe
 				int j = rand() % m;
