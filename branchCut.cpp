@@ -11,7 +11,7 @@ int mostFracVar(IloNumArray & values);
 
 
 int main() {
-	branchCut("GAP/GAP-b05100.dat");
+	branchCut("GAP/GAP-a05100.dat");
 
 	system("PAUSE");
 	return 0;
@@ -63,8 +63,8 @@ void branchCut(string instance) {
 	// coupes (inegalites de couverture) a ajouter dynamiquement
 	IloConstraintArray cuts(env);
 
-	IloNumArray values(env);
-	IloNumArray bestValues(env);
+	//IloNumArray values(env);
+	IloNumArray bestValues(env, n * m);
 	int lb = 0;
 	int ub = INT_MAX;
 	double curObj;
@@ -91,13 +91,15 @@ void branchCut(string instance) {
 
 		IloCplex masterSolver(master);
 		masterSolver.setOut(env.getNullStream());
-		//masterSolver.exportModel("masterModel.lp");
+		/*if (iter==260)
+			masterSolver.exportModel("masterModel.lp");*/
 		if (!masterSolver.solve()) {
 			cout << "iteration " << ++iter << " : pas de solution realisable, abandon du noeud" << endl;
-			system("PAUSE");
+			//system("PAUSE");
 			continue;
 		}
 		curObj = masterSolver.getObjValue();
+		IloNumArray values(env);
 		masterSolver.getValues(values, x);
 		int k = mostFracVar(values);
 
@@ -108,7 +110,7 @@ void branchCut(string instance) {
 			// update ub
 			if (curObj < ub) {
 				ub = floor(curObj);
-				bestValues = values;
+				for (int k = 0; k < m * n; k++) bestValues[k] = values[k];
 				cout << "solution entiere ameliorante de valeur " << ub << endl;
 			}
 			cout << "solution entiere (non ameliorante) de valeur " << curObj << endl;
@@ -126,8 +128,6 @@ void branchCut(string instance) {
 				allocationsQueue.push(allocation);
 				cout << "on branche sur x[j=" << k%m << "][i=" << k/m << "]" << endl;
 
-
-				//cuts.add(x[rand()%m*n] >= RC_EPS);
 
 				// ajout d'une nouvelle coupe
 				int j = rand() % m;
@@ -179,6 +179,7 @@ void branchCut(string instance) {
 				cout << "abandon du noeud" << endl;
 			}
 		}
+		values.end();
 		masterSolver.end();
 		master.end();
 	}
