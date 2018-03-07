@@ -1,7 +1,9 @@
 #include <ilcplex/ilocplex.h>
+#include <chrono>
 #include "includesBranchCut.h"
 
 using namespace std;
+using namespace std::chrono;
 
 const double RC_EPS = 0.0001;
 int cost, nn, mm, a[81][1600], b[81], c[81][1600];
@@ -107,8 +109,9 @@ void branchCut(string instance) {
 	allocationsQueue.push(allocation);
 
 	int iter = 0;
-	while (!allocationsQueue.empty()) {
-    printf("Current Memory Usage : %dMb\n", getValue()/1000);
+  auto start = steady_clock::now();
+	while (!allocationsQueue.empty() && duration_cast<chrono::milliseconds>(steady_clock::now() - start).count() < 20000) {
+    //printf("Current Memory Usage : %dMb\n", getValue()/1000);
 		allocation = allocationsQueue.front();
 		allocationsQueue.pop();
 
@@ -128,7 +131,7 @@ void branchCut(string instance) {
 		/*if (iter==260)
 			masterSolver.exportModel("masterModel.lp");*/
 		if (!masterSolver.solve()) {
-			cout << "iteration " << ++iter << " : pas de solution realisable, abandon du noeud" << endl;
+			//cout << "iteration " << ++iter << " : pas de solution realisable, abandon du noeud" << endl;
 			//system("PAUSE");
 			continue;
 		}
@@ -137,7 +140,7 @@ void branchCut(string instance) {
 		masterSolver.getValues(values, x);
 		int k = mostFracVar(values);
 
-		cout << "iteration " << ++iter << " (" << allocationsQueue.size() << " noeuds restants) : valeur " << curObj << ", ";
+		//cout << "iteration " << ++iter << " (" << allocationsQueue.size() << " noeuds restants) : valeur " << curObj << ", ";
 
 		// variables entieres
 		if (k < 0) {
@@ -145,9 +148,9 @@ void branchCut(string instance) {
 			if (curObj < ub) {
 				ub = floor(curObj);
 				for (int k = 0; k < m * n; k++) bestValues[k] = values[k];
-				cout << "solution entiere ameliorante de valeur " << ub << endl;
+				//cout << "solution entiere ameliorante de valeur " << ub << endl;
 			}
-			cout << "solution entiere (non ameliorante) de valeur " << curObj << endl;
+			//cout << "solution entiere (non ameliorante) de valeur " << curObj << endl;
 		}
 
 		// sinon, on branche sur x[k]
@@ -160,7 +163,7 @@ void branchCut(string instance) {
 				allocationsQueue.push(allocation);
 				allocation[k] = 0;
 				allocationsQueue.push(allocation);
-				cout << "on branche sur x[j=" << k%m << "][i=" << k/m << "]" << endl;
+				//cout << "on branche sur x[j=" << k%m << "][i=" << k/m << "]" << endl;
 
         if(rand()%100 < 5){
 				  // ajout d'une nouvelle coupe
@@ -196,35 +199,35 @@ void branchCut(string instance) {
 						cuts.add(newCut >= 1);
 						newCut.end();
 						zValues.end();
-						cout << "nouvelle coupe sur la machine " << j << endl;
+						//cout << "nouvelle coupe sur la machine " << j << endl;
 						break;
 					}
 					else {
-						cout << "inegalites de couverture toutes respectees pour la machine " << j << endl;
+						//cout << "inegalites de couverture toutes respectees pour la machine " << j << endl;
 						j = (j + 1) % m;
-					}
+					}using namespace std::chrono;
 					auxSolver.end();
 					aux.end();
 					z.end();
 				}
         }
 			}
-			else {
-				cout << "abandon du noeud" << endl;
-			}
+
 		}
 		values.end();
 		masterSolver.end();
 		master.end();
 	}
+  cout << instance << endl;
+	cout << "Solution de valeur " << ub << endl;
+  cout << "Borne inf : " << lb << endl << endl << endl;
 
-	cout << "\n\nSolution de valeur " << ub << " :\n";
-	for (int j = 0; j < m; j++) {
+	/*for (int j = 0; j < m; j++) {
 		cout << "Machine " << j << " : ";
 		for (int i = 0; i < n; i++) {
 			if (bestValues[m*i + j] > 1 - RC_EPS)
 				cout << i << " ";
 		}
 		cout << endl;
-	}
+	}*/
 }
