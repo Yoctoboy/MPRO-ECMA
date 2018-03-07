@@ -9,11 +9,44 @@ int cost, nn, mm, a[81][1600], b[81], c[81][1600];
 void branchCut(string instance);
 int mostFracVar(IloNumArray & values);
 
+int parseLine(char* line){
+    // This assumes that a digit will be found and the line ends in " Kb".
+    int i = strlen(line);
+    const char* p = line;
+    while (*p <'0' || *p > '9') p++;
+    line[i-3] = '\0';
+    i = atoi(p);
+    return i;
+}
+
+int getValue(){ //Note: this value is in KB!
+    FILE* file = fopen("/proc/self/status", "r");
+    int result = -1;
+    char line[128];
+
+    while (fgets(line, 128, file) != NULL){
+        if (strncmp(line, "VmRSS:", 6) == 0){
+            result = parseLine(line);
+            break;
+        }
+    }
+    fclose(file);
+    return result;
+}
+
 
 int main() {
-	branchCut("GAP/GAP-a05100.dat");
+	//seed aleatoire pour la generation de nombres aleatoires
+	srand(time(NULL));
 
-	system("PAUSE");
+	//algo
+	string s;
+	ifstream instances;
+	instances.open("Liste_instances.txt");
+	while (instances >> s) {
+		branchCut(s);
+	}
+
 	return 0;
 }
 
@@ -48,7 +81,7 @@ void branchCut(string instance) {
 		allocationConstr.add(expr_i == 1);
 		expr_i.end();
 	}
-	
+
 	// contraintes de capacite des machines
 	IloConstraintArray capacityConstr(env);
 	for (int j = 0; j < m; j++) {
@@ -59,7 +92,7 @@ void branchCut(string instance) {
 		capacityConstr.add(expr_j <= b[j]);
 		expr_j.end();
 	}
-	
+
 	// coupes (inegalites de couverture) a ajouter dynamiquement
 	IloConstraintArray cuts(env);
 
@@ -75,6 +108,7 @@ void branchCut(string instance) {
 
 	int iter = 0;
 	while (!allocationsQueue.empty()) {
+    printf("Current Memory Usage : %dMb\n", getValue()/1000);
 		allocation = allocationsQueue.front();
 		allocationsQueue.pop();
 
@@ -104,7 +138,7 @@ void branchCut(string instance) {
 		int k = mostFracVar(values);
 
 		cout << "iteration " << ++iter << " (" << allocationsQueue.size() << " noeuds restants) : valeur " << curObj << ", ";
-		
+
 		// variables entieres
 		if (k < 0) {
 			// update ub
@@ -128,10 +162,10 @@ void branchCut(string instance) {
 				allocationsQueue.push(allocation);
 				cout << "on branche sur x[j=" << k%m << "][i=" << k/m << "]" << endl;
 
-
-				// ajout d'une nouvelle coupe
-				int j = rand() % m;
-				for (int count = 0; count < m; count++) {
+        if(rand()%100 < 5){
+				  // ajout d'une nouvelle coupe
+				  int j = rand() % m;
+				  for (int count = 0; count < m; count++) {
 					IloModel aux(env);
 					IloBoolVarArray z(env, n);
 
@@ -173,7 +207,7 @@ void branchCut(string instance) {
 					aux.end();
 					z.end();
 				}
-				
+        }
 			}
 			else {
 				cout << "abandon du noeud" << endl;
