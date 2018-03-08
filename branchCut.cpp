@@ -62,6 +62,7 @@ void branchCut(string instance) {
 	
 	// coupes (inegalites de couverture) a ajouter dynamiquement
 	IloConstraintArray cuts(env);
+	cuts.add(x[0] >= 0);
 
 	//IloNumArray values(env);
 	IloNumArray bestValues(env, n * m);
@@ -75,114 +76,115 @@ void branchCut(string instance) {
 
 	int iter = 0;
 	while (!allocationsStack.empty()) {
-		allocation = allocationsStack.top();
-		allocationsStack.pop();
+		try {
+			allocation = allocationsStack.top();
+			allocationsStack.pop();
 
-		IloModel master(env);
-		master.add(obj);
-		master.add(allocationConstr);
-		master.add(capacityConstr);
-		master.add(cuts);
+			IloModel master(env);
+			master.add(obj);
+			master.add(allocationConstr);
+			master.add(capacityConstr);
+			
+			// (k = m*i+j, 0/1) dans allocation --> force i dans la machine j ou dans n'importe laquelle sauf j
+			for (auto it = allocation.begin(); it != allocation.end(); it++) {
+				master.add(x[it->first] == it->second);
+			}
 
-		// (k = m*i+j, 0/1) dans allocation --> force i dans la machine j ou dans n'importe laquelle sauf j
-		for (auto it = allocation.begin(); it != allocation.end(); it++) {
-			master.add(x[it->first] == it->second);
-		}
+			IloCplex masterSolver(master);
 
-		IloCplex masterSolver(master);
-		masterSolver.setOut(env.getNullStream());
-		/*if (iter==260)
-			masterSolver.exportModel("masterModel.lp");*/
-		if (!masterSolver.solve()) {
-			cout << "iteration " << ++iter << " : pas de solution realisable, abandon du noeud" << endl;
-			//system("PAUSE");
-			continue;
-		}
-		curObj = masterSolver.getObjValue();
-		IloNumArray values(env);
-		masterSolver.getValues(values, x);
-		int k = mostFracVar(values);
+			masterSolver.setOut(env.getNullStream());
+			cuts = masterSolver.addCuts(cuts);
+			/*if (iter==260)
+				masterSolver.exportModel("masterModel.lp");*/
+			if (!masterSolver.solve()) {
+				cout << "iteration " << ++iter << " : pas de solution realisable, abandon du noeud" << endl;
+				continue;
+			}
+			curObj = masterSolver.getObjValue();
+			IloNumArray values(env);
+			masterSolver.getValues(values, x);
+			int k = mostFracVar(values);
 
-		cout << "iteration " << ++iter << " (" << allocationsStack.size() << " noeuds restants) : valeur " << curObj << ", ";
+			cout << "iteration " << ++iter << " (" << allocationsStack.size() << " noeuds restants) : valeur " << curObj << ", ";
 		
-		// variables entieres
-		if (k < 0) {
-			// update ub
-			if (curObj < ub) {
-				ub = floor(curObj);
-				for (int k = 0; k < m * n; k++) bestValues[k] = values[k];
-				cout << "solution entiere ameliorante de valeur " << ub << endl;
-			}
-			cout << "solution entiere (non ameliorante) de valeur " << curObj << endl;
-		}
-
-		// sinon, on branche sur x[k]
-		else {
-			// potentiellement meilleur que la meilleure solution actuelle
-			if (ceil(curObj) < ub) {
-				// update lb
-				if (curObj > lb) lb = ceil(curObj);
-				allocation[k] = 1;
-				allocationsStack.push(allocation);
-				allocation[k] = 0;
-				allocationsStack.push(allocation);
-				cout << "on branche sur x[j=" << k%m << "][i=" << k/m << "]" << endl;
-
-
-				// ajout d'une nouvelle coupe
-				if (rand() % 100 < 95) continue;
-				int j = rand() % m;
-				for (int count = 0; count < m; count++) {
-					IloModel aux(env);
-					IloBoolVarArray z(env, n);
-
-					IloExpr exprObj(env);
-					IloExpr exprConstr(env);
-					for (int i = 0; i < n; i++) {
-						exprObj += (1 - values[i]) * z[i];
-						exprConstr += a[j][i] * z[i];
-					}
-					aux.add(IloObjective(env, exprObj, IloObjective::Minimize));
-					aux.add(exprConstr > b[j]);
-					exprObj.end();
-					exprConstr.end();
-
-					IloCplex auxSolver(aux);
-					auxSolver.setOut(env.getNullStream());
-					//auxSolver.exportModel("auxModel.lp");
-					auxSolver.solve();
-
-					// ajout de la coupe trouvee
-					if (auxSolver.getObjValue() < 1) {
-						IloNumArray zValues(env);
-						auxSolver.getValues(zValues, z);
-						IloExpr newCut(env);
-						for (int i = 0; i < n; i++) {
-							newCut += (1 - x[m * i + j]) * zValues[i];
-						}
-						cuts.add(newCut >= 1);
-						newCut.end();
-						zValues.end();
-						cout << "nouvelle coupe sur la machine " << j << endl;
-						break;
-					}
-					else {
-						cout << "inegalites de couverture toutes respectees pour la machine " << j << endl;
-						j = (j + 1) % m;
-					}
-					auxSolver.end();
-					aux.end();
-					z.end();
+			// variables entieres
+			if (k < 0) {
+				// update ub
+				if (curObj < ub) {
+					ub = floor(curObj);
+					for (int k = 0; k < m * n; k++) bestValues[k] = values[k];
+					cout << "solution entiere ameliorante de valeur " << ub << endl;
 				}
-				
+				cout << "solution entiere (non ameliorante) de valeur " << curObj << endl;
 			}
+
+			// sinon, on branche sur x[k]
 			else {
-				cout << "abandon du noeud" << endl;
+				// potentiellement meilleur que la meilleure solution actuelle
+				if (ceil(curObj) < ub) {
+					// update lb
+					if (curObj > lb) lb = ceil(curObj);
+					allocation[k] = 1;
+					allocationsStack.push(allocation);
+					allocation[k] = 0;
+					allocationsStack.push(allocation);
+					cout << "on branche sur x[j=" << k%m << "][i=" << k/m << "]" << endl;
+
+
+					// ajout d'une nouvelle coupe
+					if (rand() % 100 < 5) {
+						int j = rand() % m;
+						IloEnv envAux;
+						IloModel aux(envAux);
+						IloBoolVarArray z(envAux, n);
+
+						IloExpr exprObj(envAux);
+						IloExpr exprConstr(envAux);
+						for (int i = 0; i < n; i++) {
+							exprObj += (1 - values[i]) * z[i];
+							exprConstr += a[j][i] * z[i];
+						}
+						aux.add(IloObjective(envAux, exprObj, IloObjective::Minimize));
+						aux.add(exprConstr > b[j]);
+						exprObj.end();
+						exprConstr.end();
+
+						IloCplex auxSolver(aux);
+						auxSolver.setOut(env.getNullStream());
+						//auxSolver.exportModel("auxModel.lp");
+						auxSolver.solve();
+
+						// ajout de la coupe trouvee
+						if (auxSolver.getObjValue() < 1) {
+							IloNumArray zValues(envAux);
+							auxSolver.getValues(zValues, z);
+							IloExpr newCut(env);
+							for (int i = 0; i < n; i++) {
+								newCut += (1 - x[m * i + j]) * zValues[i];
+							}
+							cuts.add(newCut >= 1);
+							newCut.end();
+							zValues.end();
+							cout << "nouvelle coupe sur la machine " << j << endl;
+						}
+						auxSolver.end();
+						aux.end();
+						z.end();
+						envAux.end();
+					}
+				}
+				else {
+					cout << "abandon du noeud" << endl;
+				}
 			}
+			values.end();
+			masterSolver.end();
+			master.end();
 		}
-		values.end();
-		masterSolver.end();
-		master.end();
+		catch (IloMemoryException e) {
+			cout << "\nMémoire insuffisante : arret de l'algorithme" << endl;
+			break;
+		}
 	}
 
 	cout << "\n\nSolution de valeur " << ub << " :\n";
