@@ -60,6 +60,8 @@ void parse(string s) {
 	//parse b
 	for (int j = 0; j < mm; j++) ss >> b[j];
 	b[mm] = INT_MAX;
+
+	f.close();
 }
 
 
