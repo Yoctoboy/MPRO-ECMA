@@ -11,11 +11,6 @@ LIBFORMAT  = static_pic
 
 CPLEXDIR      = /opt/ibm/ILOG/CPLEX_Studio125/cplex
 CONCERTDIR    = /opt/ibm/ILOG/CPLEX_Studio125/concert
-# ---------------------------------------------------------------------
-# Compiler selection
-# ---------------------------------------------------------------------
-
-CCC = g++
 
 
 # ---------------------------------------------------------------------
@@ -39,7 +34,32 @@ CCLNFLAGS = -lconcert -lilocplex -lcplex -lm -pthread
 
 # ------------------------------------------------------------
 
-all: colGen
+
+all: heuristique colGen branchCut
+
+
+
+heuristique: heuristique.o includesHeuristique.o
+	g++ $(CCOPT) -o heuristique heuristique.o includesHeuristique.o
+
+heuristique.o: heuristique.cpp
+	g++ -c $(CCOPT) heuristique.cpp -o heuristique.o
+
+includesHeuristique.o: includesHeuristique.cpp
+	g++ -c $(CCOPT) includesHeuristique.cpp -o includesHeuristique.o
+
+
+
+colGen: colGen.o includesColGen.o
+	g++ $(CCFLAGS) $(CCLNDIRS) -o colGen colGen.o includesColGen.o $(CCLNFLAGS)
+
+colGen.o: colGen.cpp
+	g++ -c $(CCFLAGS) colGen.cpp -o colGen.o
+
+includesColGen.o: includesColGen.cpp
+	g++ -c $(CCFLAGS) includesColGen.cpp -o includesColGen.o
+
+
 
 branchCut: branchCut.o includesBranchCut.o
 	g++ $(CCFLAGS) $(CCLNDIRS) -o branchCut branchCut.o includesBranchCut.o $(CCLNFLAGS)
@@ -50,14 +70,7 @@ branchCut.o: branchCut.cpp
 includesBranchCut.o: includesBranchCut.cpp
 	g++ -c $(CCFLAGS) includesBranchCut.cpp -o includesBranchCut.o
 
-colGen: colGen.o includesColGen.o
-	g++ $(CCFLAGS) $(CCLNDIRS) -o colGen colGen.o includesColGen.o $(CCLNFLAGS)
 
-colGen.o: colGen.cpp
-	g++ -c $(CCFLAGS) colGen.cpp -o colGen.o
-
-includesColGen.o: includesColGen.cpp
-	g++ -c $(CCFLAGS) includesColGen.cpp -o includesColGen.o
 
 clean:
 	rm -rf *.o
