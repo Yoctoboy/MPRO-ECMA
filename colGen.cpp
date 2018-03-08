@@ -12,8 +12,7 @@ double time_instance;
 
 void colGen(string instance);
 
-
-int main() {
+/*int main() {
 	//seed aleatoire pour la generation de nombres aleatoires
 	srand(time(NULL));
 
@@ -29,6 +28,17 @@ int main() {
 	while (instances >> s) {
 		colGen(s);
 	}
+	return 0;
+}*/
+
+int main() {
+	string instance;
+	printf("Entrez l'instance que vous voulez résoudre (par exemple 'GAP-a05100.dat') : ");
+	cin >> instance;
+	printf("Temps d'execution (en ms) ? ");
+	cin >> time_instance;
+
+	colGen("GAP/"+instance);
 
 	return 0;
 }
@@ -91,7 +101,7 @@ void colGen(string instance) {
 
 	clock_t start = clock();
 	// Tant que le sous-probleme fournit une solution de valeur negative
-	while (!isOver && (clock() - start) / (double)CLOCKS_PER_SEC < 0.75*time_instance) {
+	while (!isOver && (clock() - start) / (double)CLOCKS_PER_SEC < time_instance/1000) {
 
 		PMRSolver.solve();
 
@@ -162,6 +172,6 @@ void colGen(string instance) {
 
 	}
 	PMRSolver.solve();
-	cout << "Solution apres generation de colonnes : " << current_value << endl << endl;
+	printf("Solution apres generation de colonnes : %d\n", current_value);
 	cout << flush;
 }
