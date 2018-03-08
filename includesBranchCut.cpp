@@ -6,19 +6,18 @@ using namespace std;
 void printdata() {
 	cout << endl;
 
-	//parse c
 	for (int j = 0; j < mm; j++) {
 		for (int i = 0; i < nn; i++) cout << c[j][i] << " ";
 		cout << endl;
 	}
 	cout << endl;
-	//parse a
+
 	for (int j = 0; j < mm; j++) {
 		for (int i = 0; i < nn; i++) cout << a[j][i] << " ";
 		cout << endl;
 	}
 	cout << endl;
-	//parse b
+
 	for (int j = 0; j < mm; j++) cout << b[j] << " ";
 	cout << endl << endl;
 	cout << nn << " " << mm << endl;

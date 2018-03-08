@@ -6,19 +6,26 @@ using namespace std;
 const double RC_EPS = 0.0001;
 int cost, nn, mm, a[81][1600], b[81], c[81][1600];
 
-void branchCut(string instance);
+void branchCut(string instance, bool verbose);
 int mostFracVar(IloNumArray & values);
 
 
+//tourne sur toutes les instances à la suite
 int main() {
-	branchCut("GAP/GAP-b05100.dat");
+	string instance;
+	char verbose;
 
-	system("PAUSE");
+	printf("Entrez l'instance que vous voulez résoudre (par exemple 'GAP-a05100.dat') : ");
+	cin >> instance;
+	printf("Verbose ? (y/n) ");
+	cin >> verbose;
+
+	branchCut("GAP/"+instance, verbose == 'y' ? true : false);
 	return 0;
 }
 
 
-void branchCut(string instance) {
+void branchCut(string instance, bool verbose) {
 	parse(instance);
 
 	IloEnv env;
@@ -97,7 +104,7 @@ void branchCut(string instance) {
 			/*if (iter==260)
 				masterSolver.exportModel("masterModel.lp");*/
 			if (!masterSolver.solve()) {
-				cout << "iteration " << ++iter << " : pas de solution realisable, abandon du noeud" << endl;
+				if(verbose) printf("Iteration %d : pas de solution realisable, abandon du noeud\n", ++iter);
 				continue;
 			}
 			curObj = masterSolver.getObjValue();
@@ -105,7 +112,7 @@ void branchCut(string instance) {
 			masterSolver.getValues(values, x);
 			int k = mostFracVar(values);
 
-			cout << "iteration " << ++iter << " (" << allocationsStack.size() << " noeuds restants) : valeur " << curObj << ", ";
+			if(verbose) printf("Iteration %d (%d noeuds restants) : valeur %lf\n", ++iter, allocationsStack.size(), curObj);
 
 			// variables entieres
 			if (k < 0) {
@@ -113,9 +120,9 @@ void branchCut(string instance) {
 				if (curObj < ub) {
 					ub = floor(curObj);
 					for (int k = 0; k < m * n; k++) bestValues[k] = values[k];
-					cout << "solution entiere ameliorante de valeur " << ub << endl;
+					if(verbose) printf("Solution entiere ameliorante de valeur %d\n", ub);
 				}
-				cout << "solution entiere (non ameliorante) de valeur " << curObj << endl;
+				else if(verbose) printf("Solution entiere (non ameliorante) de valeur %d\n", curObj);
 			}
 
 			// sinon, on branche sur x[k]
@@ -128,7 +135,7 @@ void branchCut(string instance) {
 					allocationsStack.push(allocation);
 					allocation[k] = 0;
 					allocationsStack.push(allocation);
-					cout << "on branche sur x[j=" << k%m << "][i=" << k/m << "]" << endl;
+					if(verbose) printf("On branche sur x[j=%d][i=%d]\n", k%m, k/m);
 
 
 					// ajout d'une nouvelle coupe
@@ -165,7 +172,7 @@ void branchCut(string instance) {
 							cuts.add(newCut >= 1);
 							newCut.end();
 							zValues.end();
-							cout << "nouvelle coupe sur la machine " << j << endl;
+							if(verbose) printf("Nouvelle coupe sur la machine %d\n", j);
 						}
 						auxSolver.end();
 						aux.end();
@@ -174,7 +181,7 @@ void branchCut(string instance) {
 					}
 				}
 				else {
-					cout << "abandon du noeud" << endl;
+					if(verbose) puts("abandon du noeud");
 				}
 			}
 			values.end();
@@ -182,17 +189,17 @@ void branchCut(string instance) {
 			master.end();
 		}
 		catch (IloMemoryException e) {
-			cout << "\nMemoire insuffisante : arret de l'algorithme" << endl;
+			puts("\nMemoire insuffisante : arret de l'algorithme");
 			break;
 		}
 	}
 
-	cout << "\n\nSolution de valeur " << ub << " :\n";
+	printf("\n\nSolution de valeur %d\n", ub);
 	for (int j = 0; j < m; j++) {
-		cout << "Machine " << j << " : ";
+		printf("Machine %d :\n", j);
 		for (int i = 0; i < n; i++) {
 			if (bestValues[m*i + j] > 1 - RC_EPS)
-				cout << i << " ";
+				printf("%d ", i);
 		}
 		cout << endl;
 	}
