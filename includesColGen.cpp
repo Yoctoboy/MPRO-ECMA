@@ -29,8 +29,7 @@ int heuristique() {
 		}
 		sorted[i] = make_pair(worst_a, i);
 	}
-	sort(sorted.begin(), sorted.end());
-	//reverse(sorted.begin(), sorted.end());
+	sort(sorted.begin(), sorted.end(), greater<pair<int, int> >());
 
 
 	//init

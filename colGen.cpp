@@ -12,6 +12,21 @@ double time_instance;
 
 void colGen(string instance);
 
+int main() {
+	string instance;
+	printf("Entrez l'instance que vous voulez resoudre (par exemple 'GAP-a05100.dat') : ");
+	cin >> instance;
+	printf("Temps d'execution (en ms) ? ");
+	cin >> time_instance;
+
+	colGen("GAP/"+instance);
+
+	//system("PAUSE");
+	return 0;
+}
+
+
+// resolution de toutes les instances
 /*int main() {
 	//seed aleatoire pour la generation de nombres aleatoires
 	srand(time(NULL));
@@ -28,20 +43,9 @@ void colGen(string instance);
 	while (instances >> s) {
 		colGen(s);
 	}
+	//system("PAUSE");
 	return 0;
 }*/
-
-int main() {
-	string instance;
-	printf("Entrez l'instance que vous voulez résoudre (par exemple 'GAP-a05100.dat') : ");
-	cin >> instance;
-	printf("Temps d'execution (en ms) ? ");
-	cin >> time_instance;
-
-	colGen("GAP/"+instance);
-
-	return 0;
-}
 
 
 //génération de colonnes

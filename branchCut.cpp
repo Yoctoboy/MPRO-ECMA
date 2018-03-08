@@ -15,12 +15,13 @@ int main() {
 	string instance;
 	char verbose;
 
-	printf("Entrez l'instance que vous voulez résoudre (par exemple 'GAP-a05100.dat') : ");
+	printf("Entrez l'instance que vous voulez resoudre (par exemple 'GAP-a05100.dat') : ");
 	cin >> instance;
 	printf("Verbose ? (y/n) ");
 	cin >> verbose;
 
 	branchCut("GAP/"+instance, verbose == 'y' ? true : false);
+	//system("PAUSE");
 	return 0;
 }
 
@@ -73,7 +74,6 @@ void branchCut(string instance, bool verbose) {
 
 	//IloNumArray values(env);
 	IloNumArray bestValues(env, n * m);
-	int lb = 0;
 	int ub = INT_MAX;
 	double curObj;
 
@@ -100,9 +100,8 @@ void branchCut(string instance, bool verbose) {
 			IloCplex masterSolver(master);
 
 			masterSolver.setOut(env.getNullStream());
-			cuts = masterSolver.addCuts(cuts);
-			/*if (iter==260)
-				masterSolver.exportModel("masterModel.lp");*/
+			masterSolver.addCuts(cuts);
+			//masterSolver.exportModel("masterModel.lp");
 			if (!masterSolver.solve()) {
 				if(verbose) printf("Iteration %d : pas de solution realisable, abandon du noeud\n", ++iter);
 				continue;
@@ -129,8 +128,6 @@ void branchCut(string instance, bool verbose) {
 			else {
 				// potentiellement meilleur que la meilleure solution actuelle
 				if (ceil(curObj) < ub) {
-					// update lb
-					if (curObj > lb) lb = ceil(curObj);
 					allocation[k] = 1;
 					allocationsStack.push(allocation);
 					allocation[k] = 0;

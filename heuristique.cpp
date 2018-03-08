@@ -16,7 +16,7 @@ int main() {
 
 	string instance;
 	int millisec;
-	printf("Entrez l'instance que vous voulez résoudre (par exemple 'GAP-a05100.dat') : ");
+	printf("Entrez l'instance que vous voulez resoudre (par exemple 'GAP-a05100.dat') : ");
 	cin >> instance;
 	printf("Temps d'execution (en ms) ? ");
 	cin >> millisec;
@@ -41,15 +41,14 @@ int heuristique(int millisec) {
 		}
 		sorted[i] = make_pair(worst_a, i);
 	}
-	sort(sorted.begin(), sorted.end());
-	//reverse(sorted.begin(), sorted.end());
+	sort(sorted.begin(), sorted.end(), greater<>());
 
 
 	//init
 	int nbOnVirtualMachine = 0;
 	for (int i = 0; i < n; i++) {
 		int taskIndex = sorted[i].second;
-		int min_a = 100000;
+		int min_a = INT_MAX;
 		int minIndex = m;
 		for (int j = 0; j < m; j++) {
 			if (min_a > a[taskIndex][j] && a[taskIndex][j] <= br[j]) {

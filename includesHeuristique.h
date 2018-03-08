@@ -13,6 +13,7 @@
 #include <queue>
 #include <climits>
 #include <chrono>
+#include <functional>
 
 
 extern int n, m, cost, a[1600][81], b[81], br[81], c[1600][81], machine[1600];
