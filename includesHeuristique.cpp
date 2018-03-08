@@ -37,3 +37,13 @@ void parse(string s) {
 	for (int j = 0; j <= m; j++) br[j] = b[j];
 }
 
+void printSol(){
+	for (int j = 0; j < m; j++) {
+		printf("Machine %d :\n", j);
+		for (int i = 0; i < n; i++) {
+			if (machine[i] == j)
+				printf("%d ", i);
+		}
+		cout << endl;
+	}
+}

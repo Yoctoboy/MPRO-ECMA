@@ -6,31 +6,29 @@ using namespace std::chrono;
 #define D false
 
 int n, m, cost, a[1600][81], b[81], br[81], c[1600][81], machine[1600];
-int millisec = 1000;
 
 void moveTask(int task, int newMachine);
-int heuristique();
-
+int heuristique(int millisec);
+void printSol();
 
 int main() {
-
 	srand(time(NULL));
 
-	printf("Execution de l'algorithme en %d ms par instance\n", millisec);
-	string s;
-	ifstream instances;
-	instances.open("Liste_instances.txt");
-	while (instances >> s) {
-		parse(s);
-		printf("%s : %d\n", s.c_str(), heuristique());
-	}
-	instances.close();
+	string instance;
+	int millisec;
+	printf("Entrez l'instance que vous voulez résoudre (par exemple 'GAP-a05100.dat') : ");
+	cin >> instance;
+	printf("Temps d'execution (en ms) ? ");
+	cin >> millisec;
 
+	parse("GAP/"+instance);
+	printf("Solution de valeur %d\n", heuristique(millisec));
+	printSol();
 	return 0;
 }
 
 
-int heuristique() {
+int heuristique(int millisec) {
 
 	cost = 0;
 
@@ -128,53 +126,53 @@ int heuristique() {
 		}
 	}
 
-    // algo: simulated annealing
-    int curTask, curMachine, bestMachine, bestTask, costDiff, bestDiff;
-    double T = 1.;
-    auto start = steady_clock::now();
-    while (duration_cast<chrono::milliseconds>(steady_clock::now() - start).count() < millisec) {
-        for (int r = 0; r < m; r++) {			// (r < m) arbitrary
-            curTask = rand() % n;
-            curMachine = machine[curTask];
-            bestDiff = INT_MAX;
+  // algo: simulated annealing
+  int curTask, curMachine, bestMachine, bestTask, costDiff, bestDiff;
+  double T = 1.;
+  auto start = steady_clock::now();
+  while (duration_cast<chrono::milliseconds>(steady_clock::now() - start).count() < millisec) {
+      for (int r = 0; r < m; r++) {			// (r < m) arbitrary
+          curTask = rand() % n;
+          curMachine = machine[curTask];
+          bestDiff = INT_MAX;
 
-            // try and move task from a machine to another (probability 0.5)
-            if (rand() % 2 == 0) {
-                bestMachine = curMachine;
-                for (int j = 0; j < m; j++) {
-                    if (j == curMachine) continue;
-                    if (a[curTask][j] <= br[j] && c[curTask][j] - c[curTask][curMachine] < bestDiff) {
-                        bestMachine = j;
-                        bestDiff = c[curTask][j] - c[curTask][curMachine];
-                    }
-                }
-                // move curTask from curMachine to bestMachine if it reduces the cost, or with a certain probability depending on T
-                if (bestDiff < 0 || (bestDiff < INT_MAX && ((double)rand() / RAND_MAX) < exp(-cost / T)))
-                    moveTask(curTask, bestMachine);
-            }
+          // try and move task from a machine to another (probability 0.5)
+          if (rand() % 2 == 0) {
+              bestMachine = curMachine;
+              for (int j = 0; j < m; j++) {
+                  if (j == curMachine) continue;
+                  if (a[curTask][j] <= br[j] && c[curTask][j] - c[curTask][curMachine] < bestDiff) {
+                      bestMachine = j;
+                      bestDiff = c[curTask][j] - c[curTask][curMachine];
+                  }
+              }
+              // move curTask from curMachine to bestMachine if it reduces the cost, or with a certain probability depending on T
+              if (bestDiff < 0 || (bestDiff < INT_MAX && ((double)rand() / RAND_MAX) < exp(-cost / T)))
+                  moveTask(curTask, bestMachine);
+          }
 
-            // or try and swap two tasks (probability 0.5)
-            else {
-                for (int i = 0; i < n; i++) {
-                    // curTaks and i can be swapped
-                    if (machine[i] != curMachine && a[i][curMachine] - a[curTask][curMachine] <= br[curMachine]
-                        && a[curTask][machine[i]] - a[i][machine[i]] <= br[machine[i]]) {
-                        costDiff = c[i][curMachine] + c[curTask][machine[i]] - c[i][machine[i]] - c[curTask][curMachine];
-                        if (costDiff < bestDiff) {
-                            bestDiff = costDiff;
-                            bestTask = i;
-                        }
-                    }
-                }
-                // swap curTask and bestTask if it reduces the cost, or with a certain probability depending on T
-                if (bestDiff < 0 || (bestDiff < INT_MAX && ((double)rand() / RAND_MAX) < exp(-cost / T))) {
-                    moveTask(curTask, machine[bestTask]);
-                    moveTask(bestTask, curMachine);
-                }
-            }
-        }
-        T *= 0.9;			// arbitrary
-    }
+          // or try and swap two tasks (probability 0.5)
+          else {
+              for (int i = 0; i < n; i++) {
+                  // curTaks and i can be swapped
+                  if (machine[i] != curMachine && a[i][curMachine] - a[curTask][curMachine] <= br[curMachine]
+                      && a[curTask][machine[i]] - a[i][machine[i]] <= br[machine[i]]) {
+                      costDiff = c[i][curMachine] + c[curTask][machine[i]] - c[i][machine[i]] - c[curTask][curMachine];
+                      if (costDiff < bestDiff) {
+                          bestDiff = costDiff;
+                          bestTask = i;
+                      }
+                  }
+              }
+              // swap curTask and bestTask if it reduces the cost, or with a certain probability depending on T
+              if (bestDiff < 0 || (bestDiff < INT_MAX && ((double)rand() / RAND_MAX) < exp(-cost / T))) {
+                  moveTask(curTask, machine[bestTask]);
+                  moveTask(bestTask, curMachine);
+              }
+          }
+      }
+      T *= 0.9;			// arbitrary
+  }
 
 
 	return cost;
